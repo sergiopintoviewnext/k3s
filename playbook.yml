@@ -1,0 +1,10 @@
+- hosts: masters
+  become: true
+  roles:
+    - role: master_config
+
+
+- hosts: workers
+  become: true
+  roles:
+    - role: worker_config
