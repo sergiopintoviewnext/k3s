@@ -1,0 +1,73 @@
+---
+
+- name: Crear carpeta temporal
+  ansible.builtin.file:
+    path: "{{ path }}"
+    mode: '0755'
+    state: directory
+
+
+- name: Deshabilitar servicio firewalld
+  ansible.builtin.service:
+    name: firewalld
+    state: stopped
+    
+
+- name: Descargar script instalación
+  ansible.builtin.get_url:
+    url: https://get.k3s.io
+    dest: "{{ path }}/k3s_script.sh"
+    mode: '0644'
+
+
+- name: Instalar container-selinux
+  ansible.builtin.yum:
+    name: container-selinux
+    state: present
+    update_cache: true
+  when: ansible_os_family == "RedHat"
+
+
+- name: Ejecutar script
+  ansible.builtin.command:
+    chdir: "{{ path }}"
+    cmd: sh k3s_script.sh
+  changed_when: false
+    
+
+- name: Eliminar carpeta
+  ansible.builtin.file:
+    path: "{{ path }}"
+    state: absent    
+
+
+- name: Comprobar si kubectl está instalado
+  ansible.builtin.command:
+    cmd: kubectl version --output=yaml
+  register: kubectl
+  changed_when: false
+
+
+- name: Msg kubectl instalado
+  ansible.builtin.debug:
+    msg: "Kubectl instalado. Versión: {{ kubectl.stdout_lines[5][14::]}} "
+
+
+- name: Leer token
+  ansible.builtin.slurp:
+    path: /var/lib/rancher/k3s/server/node-token
+  register: token_fichero
+
+
+- name: Guardar token en variable
+  ansible.builtin.set_fact:
+    token: "{{ token_fichero.content | b64decode }}"
+
+
+- name: Levantar servicio k3s
+  ansible.builtin.service:
+    name: k3s
+    state: started
+    enabled: true
+
+...

@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: masters
+  tasks:
+    - name: "Include master_config"
+      include_role:
+        name: "master_config"
