@@ -1,0 +1,22 @@
+---
+
+
+- name: Token master
+  hosts: masters
+  tasks:
+    - name: Leer token
+      ansible.builtin.slurp:
+        path: /var/lib/rancher/k3s/server/node-token
+      register: token_fichero
+
+    - name: Guardar token en variable
+      ansible.builtin.set_fact:
+        token: "{{ token_fichero.content | b64decode }}"
+
+
+- name: Converge
+  hosts: workers
+  tasks:
+    - name: "Include worker_config"
+      include_role:
+        name: "worker_config"

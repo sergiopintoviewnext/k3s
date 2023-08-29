@@ -1,0 +1,77 @@
+---
+
+- name: Prepare
+  hosts: masters
+  gather_facts: true
+  tasks:
+      - name: Preparando contenedor ubi8
+        when: ansible_os_family == "RedHat"      
+        block:
+        - name: Añadir repo BaseOS
+          ansible.builtin.yum_repository:
+            name: Centos8_BaseOS
+            description: Centos8 BaseOS
+            baseurl: http://mirror.centos.org/centos/8-stream/BaseOS/x86_64/os/
+            gpgcheck: no
+
+        - name: Instalar firewalld
+          ansible.builtin.yum:
+            name: "{{ item }}"
+            state: present
+            update_cache: true
+          with_items:
+            - firewalld
+            - python3-firewall
+
+        - name: Habilitar servicio firewalld
+          ansible.builtin.service:
+            name: firewalld
+            state: started
+            enabled: true
+
+
+- name: Converge
+  hosts: masters
+  tasks:
+    - name: "Include master_config"
+      include_role:
+        name: "master_config"
+
+
+- name: Prepare
+  hosts: workers
+  gather_facts: true
+  tasks:
+    - name: Preparando contenedor ubi9
+      when: ansible_os_family == "RedHat"      
+      block:
+      - name: Añadir repo BaseOS
+        ansible.builtin.yum_repository:
+          name: Centos9_BaseOS
+          description: Centos9 BaseOS
+          baseurl: https://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/
+          gpgcheck: no
+
+      - name: Instalar firewalld
+        ansible.builtin.yum:
+          name: "{{ item }}"
+          state: present
+          update_cache: true
+        with_items:
+          - firewalld
+          - python3-firewall
+          - python-nftables
+      #     - python3-pip
+
+      # - name: Instalar modulo firewalld
+      #   ansible.builtin.pip:
+      #     name: firewall
+      #     state: present
+
+      - name: Habilitar servicio firewalld
+        ansible.builtin.service:
+          name: firewalld
+          state: started
+          enabled: true
+
+...

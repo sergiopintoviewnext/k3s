@@ -1,0 +1,32 @@
+---
+
+- debug:
+    msg: "{{ hostvars.master.ansible_default_ipv4.address }}"
+
+- name: Instalar container-selinux
+  ansible.builtin.yum:
+    name: container-selinux
+    state: present
+    update_cache: true
+  when: ansible_os_family == "RedHat"
+
+
+- name: Deshabilitar servicio firewalld
+  ansible.builtin.service:
+    name: firewalld
+    state: stopped
+
+
+- name: Instalar k3s como worker
+  ansible.builtin.shell:
+    cmd: "curl -sfL https://get.k3s.io | K3S_URL=https://{{ hostvars.master.ansible_default_ipv4.address }}:6443 K3S_TOKEN={{ hostvars.master.token[:-1] }} sh -"
+  changed_when: false
+
+
+- name: Levantar servicio k3s-agent
+  ansible.builtin.service:
+    name: k3s-agent
+    state: started
+    enabled: true
+
+...
