@@ -1,24 +1,11 @@
 ---
 
-- debug:
-    msg: "{{ hostvars.master.ansible_default_ipv4.address }}"
-
-- debug:
-    msg: "{{ hostvars.master.token[:-1] }}"    
-
 - name: Instalar container-selinux
   ansible.builtin.yum:
     name: container-selinux
     state: present
     update_cache: true
   when: ansible_os_family == "RedHat"
-
-
-- name: Deshabilitar servicio firewalld
-  ansible.builtin.service:
-    name: firewalld
-    state: stopped
-    enabled: false
 
 
 - name: Instalar k3s como worker

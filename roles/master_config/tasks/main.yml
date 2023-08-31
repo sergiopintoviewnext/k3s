@@ -5,13 +5,6 @@
     path: "{{ path }}"
     mode: '0755'
     state: directory
-
-
-- name: Deshabilitar servicio firewalld
-  ansible.builtin.service:
-    name: firewalld
-    state: stopped
-    enabled: false
     
 
 - name: Descargar script instalación
@@ -78,6 +71,14 @@
   ansible.builtin.set_fact:
     token: "{{ token_fichero.content | b64decode }}"
 
+
+- name: Permitir trafico para k3s
+  ansible.posix.firewalld:
+    port: 6443/tcp
+    permanent: true
+    state: enabled
+    immediate: true
+    
 
 - name: Levantar servicio k3s
   ansible.builtin.service:
